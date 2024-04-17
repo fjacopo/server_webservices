@@ -45,7 +45,7 @@ if ($method == 'GET') {
             $row = $result->fetch_assoc();
             echo json_encode($row);
         } else {
-            http_response_code(404); // Non trovato
+            http_response_code(404); 
             echo "No results found with ID $id";
         }
     } elseif (count($array) == 3 && $array[2] == '') {
@@ -60,12 +60,12 @@ if ($method == 'GET') {
             }
             echo json_encode($rows);
         } else {
-            http_response_code(404); // Non trovato
+            http_response_code(404); 
             echo "No results found in the table.";
         }
     } else {
         // Se il metodo HTTP non è GET
-        http_response_code(405); // Metodo non consentito
+        http_response_code(405); 
         echo "Method not allowed";
     }
 } elseif ($method == 'POST') {
@@ -82,11 +82,11 @@ if ($method == 'GET') {
         if ($stmt->execute()) {
             echo "Data entered successfully.";
         } else {
-            http_response_code(500); // Errore interno del server
+            http_response_code(500); 
             echo "Error entering data.";
         }
     } else {
-        http_response_code(400); // Richiesta non valida
+        http_response_code(400); 
         echo "Dati non validi.";
     }
 } elseif ($method == 'PUT') {
@@ -106,15 +106,15 @@ if ($method == 'GET') {
             if ($stmt->execute()) {
                 echo "Data updated successfully.";
             } else {
-                http_response_code(500); // Errore interno del server
+                http_response_code(500); 
                 echo "Error updating data.";
             }
         } else {
-            http_response_code(400); // Richiesta non valida
+            http_response_code(400); 
             echo "Invalid data.";
         }
     } else {
-        http_response_code(400); // Richiesta non valida
+        http_response_code(400); 
         echo "ID not specified.";
     }
 } elseif ($method == 'DELETE') {
@@ -130,11 +130,11 @@ if ($method == 'GET') {
         if ($stmt->execute()) {
             echo "Data successfully deleted.";
         } else {
-            http_response_code(500); // Errore interno del server
+            http_response_code(500); 
             echo "Error deleting data.";
         }
     } else {
-        http_response_code(400); // Richiesta non valida
+        http_response_code(400); 
         echo "ID not specified.";
     }
 } else {
