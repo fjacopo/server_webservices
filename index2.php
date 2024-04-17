@@ -47,7 +47,7 @@ if ($method == 'GET') {
             echo json_encode($row);
         } else {
             http_response_code(404); 
-            echo "No results found with ID $id";
+            
         }
     } elseif (count($array) == 3 && $array[2] == '') {
         // Se non è specificato un ID nella richiesta GET
@@ -63,12 +63,12 @@ if ($method == 'GET') {
             echo json_encode($rows);
         } else {
             http_response_code(404); 
-            echo "No results found in the table.";
+            
         }
     } else {
         // Se il metodo HTTP non è GET
         http_response_code(405); 
-        echo "Method not allowed";
+        
     }
 } elseif ($method == 'POST') {
     // Esegui l'inserimento dei dati
@@ -83,14 +83,14 @@ if ($method == 'GET') {
 
         if ($stmt->execute()) {
             http_response_code(201);
-            echo "Data entered successfully.";
+            
         } else {
             http_response_code(500); 
-            echo "Error entering data.";
+            
         }
     } else {
         http_response_code(400); 
-        echo "Dati non validi.";
+        
     }
 } elseif ($method == 'PUT') {
     // Esegui l'aggiornamento dei dati
@@ -108,18 +108,18 @@ if ($method == 'GET') {
 
             if ($stmt->execute()) {
                 http_response_code(200);
-                echo "Data updated successfully.";
+                
             } else {
                 http_response_code(500); 
-                echo "Error updating data.";
+               
             }
         } else {
             http_response_code(400); 
-            echo "Invalid data.";
+            
         }
     } else {
         http_response_code(400); 
-        echo "ID not specified.";
+        
     }
 } elseif ($method == 'DELETE') {
     // Esegui la cancellazione dei dati
@@ -133,19 +133,19 @@ if ($method == 'GET') {
 
         if ($stmt->execute()) {
             http_response_code(200);
-            echo "Data successfully deleted.";
+           
         } else {
             http_response_code(500); 
-            echo "Error deleting data.";
+            
         }
     } else {
         http_response_code(400); 
-        echo "ID not specified.";
+        
     }
 } else {
     // Se il metodo HTTP non è supportato
     http_response_code(405); 
-    echo "Method not allowed";
+    
 }
 
 $conn->close();
