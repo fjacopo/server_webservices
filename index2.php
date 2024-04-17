@@ -10,28 +10,31 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Verifica della connessione
 if ($conn->connect_error) {
-    die("Connessione fallita: " . $conn->connect_error);
+    http_response_code(500); 
+    die("Failed to connect: " . $conn->connect_error);
 }
 
-// verifico che le stringhe esistano e siano corrette
+// Validazione dei dati in input
 function validateData($data) {
-    return (
-        isset($data['nome']) && is_string($data['nome']) &&
-        isset($data['cognome']) && is_string($data['cognome']) &&
-        isset($data['email']) && filter_var($data['email'], FILTER_VALIDATE_EMAIL) &&
-        isset($data['eta']) && is_numeric($data['eta']) &&
-        isset($data['data_iscrizione']) && strtotime($data['data_iscrizione'])
-    );
+    if (
+        !isset($data['nome']) || !is_string($data['nome']) ||
+        !isset($data['cognome']) || !is_string($data['cognome']) ||
+        !isset($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL) ||
+        !isset($data['eta']) || !is_numeric($data['eta']) ||
+        !isset($data['tel']) || !is_numeric($data['tel'])
+    ) {
+        return false;
+    }
+    return true;
 }
 
-// Controllo del metodo HTTP
-$array = explode('/', $_SERVER['REQUEST_URI']); 
+$array = explode('/', $_SERVER['REQUEST_URI']);
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method == 'GET') {
-    if (isset($_GET['id'])) {
+    if (count($array) == 3 && $array[2] != '') {
         // Se è specificato un ID nella richiesta GET
-        $id = $_GET['id'];
+        $id = $array[2];
         $sql = "SELECT * FROM dati WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $id);
@@ -42,9 +45,10 @@ if ($method == 'GET') {
             $row = $result->fetch_assoc();
             echo json_encode($row);
         } else {
-            echo "Nessun risultato trovato con ID $id";
+            http_response_code(404); // Non trovato
+            echo "No results found with ID $id";
         }
-    } else {
+    } elseif (count($array) == 3 && $array[2] == '') {
         // Se non è specificato un ID nella richiesta GET
         $sql = "SELECT * FROM dati";
         $result = $conn->query($sql);
@@ -56,65 +60,87 @@ if ($method == 'GET') {
             }
             echo json_encode($rows);
         } else {
-            echo "Nessun risultato trovato nella tabella.";
+            http_response_code(404); // Non trovato
+            echo "No results found in the table.";
         }
+    } else {
+        // Se il metodo HTTP non è GET
+        http_response_code(405); // Metodo non consentito
+        echo "Method not allowed";
     }
 } elseif ($method == 'POST') {
-    // Inserimento dei dati
+    // Esegui l'inserimento dei dati
     $data = json_decode(file_get_contents("php://input"), true);
 
+    // Verifica se i dati sono stati inviati correttamente
     if (!empty($data) && validateData($data)) {
+        // Esegui l'inserimento nel database
         $sql = "INSERT INTO dati (nome, cognome, email, eta, data_iscrizione) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("sssis", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['data_iscrizione']);
 
         if ($stmt->execute()) {
-            echo "Dati inseriti con successo.";
+            echo "Data entered successfully.";
         } else {
-            echo "Errore durante l'inserimento dei dati.";
+            http_response_code(500); // Errore interno del server
+            echo "Error entering data.";
         }
     } else {
+        http_response_code(400); // Richiesta non valida
         echo "Dati non validi.";
     }
 } elseif ($method == 'PUT') {
-    // Aggiornamento dei dati
-    parse_str(file_get_contents("php://input"), $data);
-    $id = isset($_GET['id']) ? $_GET['id'] : null;
+    // Esegui l'aggiornamento dei dati
+    $data = json_decode(file_get_contents("php://input"), true);
+    
+    // Verifica se l'ID è stato fornito
+    if (count($array) == 3 && $array[2] != '') {
+        $id = $array[2];
+        
+        // Esegui l'aggiornamento nel database
+        if (!empty($data) && validateData($data)) {
+            $sql = "UPDATE dati SET nome=?, cognome=?, email=?, eta=?, data_iscrizione=? WHERE id=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssssi", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['data_iscrizione'], $id);
 
-    if (!is_null($id) && validateData($data)) {
-        $sql = "UPDATE dati SET nome=?, cognome=?, email=?, eta=?, data_iscrizione=? WHERE id=?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssi", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['data_iscrizione'], $id);
-
-        if ($stmt->execute()) {
-            echo "Dati aggiornati con successo.";
+            if ($stmt->execute()) {
+                echo "Data updated successfully.";
+            } else {
+                http_response_code(500); // Errore interno del server
+                echo "Error updating data.";
+            }
         } else {
-            echo "Errore durante l'aggiornamento dei dati.";
+            http_response_code(400); // Richiesta non valida
+            echo "Invalid data.";
         }
     } else {
-        echo "ID non specificato o dati non validi.";
+        http_response_code(400); // Richiesta non valida
+        echo "ID not specified.";
     }
 } elseif ($method == 'DELETE') {
-    // Cancellazione dei dati
-    $id = isset($_GET['id']) ? $_GET['id'] : null;
-
-    if (!is_null($id)) {
+    // Esegui la cancellazione dei dati
+    if (count($array) == 3 && $array[2] != '') {
+        $id = $array[2];
+        
+        // Esegui la cancellazione nel database
         $sql = "DELETE FROM dati WHERE id=?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $id);
 
         if ($stmt->execute()) {
-            echo "Dati cancellati con successo.";
+            echo "Data successfully deleted.";
         } else {
-            echo "Errore durante la cancellazione dei dati.";
+            http_response_code(500); // Errore interno del server
+            echo "Error deleting data.";
         }
     } else {
-echo "ID non specificato.";
+        http_response_code(400); // Richiesta non valida
+        echo "ID not specified.";
     }
 } else {
     // Se il metodo HTTP non è supportato
     http_response_code(405); 
-    echo "Metodo non consentito";
+    echo "Method not allowed";
 }
 
 $conn->close();
