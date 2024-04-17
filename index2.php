@@ -13,7 +13,7 @@ if ($conn->connect_error) {
     die("Connessione fallita: " . $conn->connect_error);
 }
 
-// Funzione per la validazione dei dati in input
+// verifico che le stringhe esistano e siano corrette
 function validateData($data) {
     return (
         isset($data['nome']) && is_string($data['nome']) &&
@@ -25,6 +25,7 @@ function validateData($data) {
 }
 
 // Controllo del metodo HTTP
+$array = explode('/', $_SERVER['REQUEST_URI']); 
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method == 'GET') {
