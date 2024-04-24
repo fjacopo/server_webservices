@@ -77,9 +77,9 @@ if ($method == 'GET') {
     // Verifica se i dati sono stati inviati correttamente
     if (!empty($data) && validateData($data)) {
         // Esegui l'inserimento nel database
-        $sql = "INSERT INTO dati (nome, cognome, email, eta, data_iscrizione) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO dati (nome, cognome, email, eta, tel) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssis", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['data_iscrizione']);
+        $stmt->bind_param("sssis", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['tel']);
 
         if ($stmt->execute()) {
             http_response_code(201);
@@ -102,9 +102,9 @@ if ($method == 'GET') {
         
         // Esegui l'aggiornamento nel database
         if (!empty($data) && validateData($data)) {
-            $sql = "UPDATE dati SET nome=?, cognome=?, email=?, eta=?, data_iscrizione=? WHERE id=?";
+            $sql = "UPDATE dati SET nome=?, cognome=?, email=?, eta=?, tel=? WHERE id=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssssi", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['data_iscrizione'], $id);
+            $stmt->bind_param("sssssi", $data['nome'], $data['cognome'], $data['email'], $data['eta'], $data['tel'], $id);
 
             if ($stmt->execute()) {
                 http_response_code(200);
